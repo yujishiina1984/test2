@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌤️ Weather Forecast</h1>
+            <p class="subtitle">Get current weather conditions for any city</p>
+        </header>
+
+        <main>
+            <div class="search-section">
+                <form id="search-form" class="search-form">
+                    <input 
+                        type="text" 
+                        id="city-input" 
+                        class="city-input" 
+                        placeholder="Enter city name..." 
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" class="search-btn">Search</button>
+                </form>
+            </div>
+
+            <div id="error-message" class="error-message hidden"></div>
+
+            <div id="weather-card" class="weather-card hidden">
+                <div class="weather-header">
+                    <h2 id="city-name" class="city-name"></h2>
+                    <p id="weather-date" class="weather-date"></p>
+                </div>
+                
+                <div class="weather-main">
+                    <div class="weather-icon-container">
+                        <img id="weather-icon" class="weather-icon" src="" alt="Weather icon">
+                        <p id="weather-description" class="weather-description"></p>
+                    </div>
+                    <div class="temperature-container">
+                        <span id="temperature" class="temperature"></span>
+                        <span class="temperature-unit">°C</span>
+                    </div>
+                </div>
+
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">💧</span>
+                        <div class="detail-info">
+                            <span class="detail-label">Humidity</span>
+                            <span id="humidity" class="detail-value"></span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">💨</span>
+                        <div class="detail-info">
+                            <span class="detail-label">Wind Speed</span>
+                            <span id="wind-speed" class="detail-value"></span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">🌡️</span>
+                        <div class="detail-info">
+                            <span class="detail-label">Feels Like</span>
+                            <span id="feels-like" class="detail-value"></span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">👁️</span>
+                        <div class="detail-info">
+                            <span class="detail-label">Visibility</span>
+                            <span id="visibility" class="detail-value"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Fetching weather data...</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://openweathermap.org/" target="_blank" rel="noopener noreferrer">OpenWeatherMap</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
