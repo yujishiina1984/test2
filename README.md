@@ -1,57 +1,57 @@
-# Weather Forecast Web Application
+# 天気予報ウェブアプリケーション
 
-A simple, clean, and responsive weather forecast application that runs directly in your browser. Get current weather conditions for any city worldwide.
+ブラウザ上で直接動作する、シンプルでクリーンなレスポンシブ天気予報アプリケーションです。世界中のあらゆる都市の現在の天気情報を取得できます。
 
-## Features
+## 機能
 
-- 🔍 Search weather by city name
-- 🌡️ Display current temperature in Celsius
-- ☁️ Weather description with visual icon
-- 💧 Humidity percentage
-- 💨 Wind speed in m/s
-- 🌡️ "Feels like" temperature
-- 👁️ Visibility in kilometers
-- 📱 Responsive design for all screen sizes
-- 🌙 Dark mode support (follows system preference)
-- ⚠️ User-friendly error handling
+- 🔍 都市名で天気を検索
+- 🌡️ 現在の気温を摂氏で表示
+- ☁️ 天気の説明とビジュアルアイコン
+- 💧 湿度（パーセンテージ）
+- 💨 風速（m/s）
+- 🌡️ 体感温度
+- 👁️ 視程（キロメートル）
+- 📱 あらゆる画面サイズに対応したレスポンシブデザイン
+- 🌙 ダークモード対応（システム設定に従う）
+- ⚠️ ユーザーフレンドリーなエラーハンドリング
 
-## Prerequisites
+## 前提条件
 
-- A modern web browser (Safari, Chrome, Firefox, Edge)
-- An OpenWeatherMap API key (free tier available)
+- モダンなウェブブラウザ（Safari、Chrome、Firefox、Edge）
+- OpenWeatherMap APIキー（無料枠あり）
 
-## Setup Instructions
+## セットアップ手順
 
-### Step 1: Get an API Key
+### ステップ1：APIキーを取得する
 
-1. Visit [OpenWeatherMap](https://openweathermap.org/)
-2. Click on "Sign In" or "Sign Up" to create a free account
-3. After signing in, go to your profile and navigate to "API keys"
-4. Generate a new API key (or use the default one provided)
-5. Note: New API keys may take a few hours to become active
+1. [OpenWeatherMap](https://openweathermap.org/)にアクセス
+2. 「Sign In」または「Sign Up」をクリックして無料アカウントを作成
+3. サインイン後、プロフィールに移動し「API keys」を選択
+4. 新しいAPIキーを生成（または提供されるデフォルトのキーを使用）
+5. 注意：新しいAPIキーが有効になるまで数時間かかる場合があります
 
-### Step 2: Configure the Application
+### ステップ2：アプリケーションを設定する
 
-1. Open the `script.js` file in a text editor
-2. Find the line near the top:
+1. テキストエディタで`script.js`ファイルを開く
+2. ファイルの上部付近にある以下の行を見つける：
    ```javascript
    const API_KEY = 'YOUR_API_KEY_HERE';
    ```
-3. Replace `YOUR_API_KEY_HERE` with your actual API key:
+3. `YOUR_API_KEY_HERE`を実際のAPIキーに置き換える：
    ```javascript
    const API_KEY = 'your_actual_api_key_here';
    ```
-4. Save the file
+4. ファイルを保存する
 
-### Step 3: Run the Application
+### ステップ3：アプリケーションを実行する
 
-**Option 1: Direct File Opening**
-- Simply double-click on `index.html` to open it in your default browser
-- Or right-click `index.html` and select "Open With" → your preferred browser
+**オプション1：ファイルを直接開く**
+- `index.html`をダブルクリックしてデフォルトのブラウザで開く
+- または`index.html`を右クリックして「プログラムから開く」→ 希望のブラウザを選択
 
-**Option 2: Using a Local Server (Recommended for development)**
+**オプション2：ローカルサーバーを使用する（開発時に推奨）**
 
-If you have Python installed:
+Pythonがインストールされている場合：
 ```bash
 # Python 3
 python -m http.server 8000
@@ -60,88 +60,88 @@ python -m http.server 8000
 python -m SimpleHTTPServer 8000
 ```
 
-Then open `http://localhost:8000` in your browser.
+ブラウザで`http://localhost:8000`を開きます。
 
-If you have Node.js installed:
+Node.jsがインストールされている場合：
 ```bash
-# Using npx (no installation required)
+# npxを使用（インストール不要）
 npx serve
 
-# Or install serve globally
+# またはserveをグローバルインストール
 npm install -g serve
 serve
 ```
 
-## Usage Guide
+## 使用ガイド
 
-1. **Search for a City**
-   - Enter a city name in the search box (e.g., "Tokyo", "New York", "London")
-   - Press Enter or click the "Search" button
+1. **都市を検索する**
+   - 検索ボックスに都市名を入力（例：「Tokyo」、「New York」、「London」）
+   - Enterキーを押すか「Search」ボタンをクリック
 
-2. **View Weather Information**
-   - The current weather conditions will be displayed including:
-     - City name and country
-     - Current date and time
-     - Weather icon and description
-     - Temperature
-     - Humidity, wind speed, feels like temperature, and visibility
+2. **天気情報を見る**
+   - 以下を含む現在の天気状況が表示されます：
+     - 都市名と国
+     - 現在の日時
+     - 天気アイコンと説明
+     - 気温
+     - 湿度、風速、体感温度、視程
 
-3. **Error Handling**
-   - If a city is not found, an error message will be displayed
-   - If the API key is invalid, you'll be prompted to check your configuration
-   - Network errors are handled gracefully with user-friendly messages
+3. **エラーハンドリング**
+   - 都市が見つからない場合、エラーメッセージが表示されます
+   - APIキーが無効な場合、設定を確認するよう促されます
+   - ネットワークエラーはユーザーフレンドリーなメッセージで適切に処理されます
 
-## File Structure
+## ファイル構造
 
 ```
 test2/
-├── index.html      # Main HTML file with the application structure
-├── styles.css      # CSS styles for the user interface
-├── script.js       # JavaScript logic for fetching and displaying weather data
-└── README.md       # This documentation file
+├── index.html      # アプリケーション構造を持つメインHTMLファイル
+├── styles.css      # ユーザーインターフェース用のCSSスタイル
+├── script.js       # 天気データの取得と表示を行うJavaScriptロジック
+└── README.md       # このドキュメントファイル
 ```
 
-## Browser Compatibility
+## ブラウザ互換性
 
-The application is tested and works on:
-- Safari (macOS)
+以下のブラウザでテスト済み・動作確認済み：
+- Safari（macOS）
 - Google Chrome
 - Mozilla Firefox
 - Microsoft Edge
 
-## API Information
+## API情報
 
-This application uses the [OpenWeatherMap Current Weather Data API](https://openweathermap.org/current).
+このアプリケーションは[OpenWeatherMap Current Weather Data API](https://openweathermap.org/current)を使用しています。
 
-**Free Tier Limits:**
-- 60 calls per minute
-- 1,000,000 calls per month
+**無料枠の制限：**
+- 1分あたり60回のリクエスト
+- 1ヶ月あたり1,000,000回のリクエスト
 
-## Troubleshooting
+## トラブルシューティング
 
-### "Invalid API key" error
-- Make sure you've replaced `YOUR_API_KEY_HERE` with your actual API key
-- New API keys may take up to 2 hours to activate
-- Verify your API key is correct in your OpenWeatherMap account
+### 「Invalid API key」エラー
+- `YOUR_API_KEY_HERE`を実際のAPIキーに置き換えたか確認してください
+- 新しいAPIキーは有効になるまで最大2時間かかる場合があります
+- OpenWeatherMapアカウントでAPIキーが正しいか確認してください
 
-### "City not found" error
-- Check the spelling of the city name
-- Try using the format "City, Country Code" (e.g., "Paris, FR")
-- Some smaller cities might not be in the database
+### 「City not found」エラー
+- 都市名のスペルを確認してください
+- 「City, Country Code」形式を試してください（例：「Paris, FR」）
+- 小さな都市はデータベースに含まれていない場合があります
 
-### Weather icon not loading
-- Check your internet connection
-- The icons are loaded from OpenWeatherMap's servers
+### 天気アイコンが読み込まれない
+- インターネット接続を確認してください
+- アイコンはOpenWeatherMapのサーバーから読み込まれます
 
-### Application not loading
-- Make sure all files (index.html, styles.css, script.js) are in the same directory
-- Try opening the browser's developer console (F12) to check for errors
+### アプリケーションが読み込まれない
+- すべてのファイル（index.html、styles.css、script.js）が同じディレクトリにあることを確認してください
+- ブラウザの開発者コンソール（F12）を開いてエラーを確認してください
 
-## License
+## ライセンス
 
-This project is open source and available for personal and educational use.
+このプロジェクトはオープンソースであり、個人および教育目的で使用できます。
 
-## Acknowledgments
+## 謝辞
 
-- Weather data provided by [OpenWeatherMap](https://openweathermap.org/)
-- Weather icons provided by OpenWeatherMap
+- 天気データ提供：[OpenWeatherMap](https://openweathermap.org/)
+- 天気アイコン提供：OpenWeatherMap
