@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "production"
+  },
+  {
+    "ParameterKey": "AppName",
+    "ParameterValue": "weather-app"
+  },
+  {
+    "ParameterKey": "OpenWeatherMapApiKey",
+    "ParameterValue": "your_api_key_here"
+  }
+]

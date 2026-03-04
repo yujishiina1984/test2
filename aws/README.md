@@ -33,9 +33,9 @@ aws/
 │   └── script.js
 ├── lambda/                 # Lambda関数のコード
 │   └── index.js
-├── terraform/              # Infrastructure as Code (Terraform)
-│   ├── main.tf
-│   └── terraform.tfvars.example
+├── cloudformation/              # Infrastructure as Code (CloudFormation)
+│   ├── template.yaml
+│   └── parameters.example.json
 └── README.md               # このファイル
 ```
 
@@ -43,34 +43,38 @@ aws/
 
 1. **AWS アカウント**: 有効なAWSアカウントが必要です
 2. **AWS CLI**: [AWS CLI](https://aws.amazon.com/cli/) がインストールされ、認証情報が設定されていること
-3. **Terraform**: [Terraform](https://www.terraform.io/downloads) v1.0以上がインストールされていること
+3. **CloudFormation**: AWS CLIに組み込まれているため、追加のインストールは不要です
 4. **OpenWeatherMap API キー**: [OpenWeatherMap](https://openweathermap.org/api) から取得
 
 ## デプロイ手順
 
-### 1. Terraform の設定
+### 1. CloudFormation の設定
 
 ```bash
-cd aws/terraform
+cd aws/cloudformation
 
-# terraform.tfvars.example をコピー
-cp terraform.tfvars.example terraform.tfvars
+# parameters.example.json をコピー
+cp parameters.example.json parameters.json
 
-# terraform.tfvars を編集してAPIキーを設定
-# openweathermap_api_key = "your_actual_api_key"
+# parameters.json を編集してAPIキーを設定
+# OpenWeatherMapApiKey の ParameterValue を実際のAPIキーに変更
 ```
 
-### 2. Terraform の初期化とデプロイ
+### 2. CloudFormation スタックの作成
 
 ```bash
-# 初期化
-terraform init
+# スタックの作成
+aws cloudformation create-stack \
+  --stack-name weather-app \
+  --template-body file://template.yaml \
+  --parameters file://parameters.json \
+  --capabilities CAPABILITY_NAMED_IAM
 
-# 計画の確認
-terraform plan
+# スタック作成完了を待機
+aws cloudformation wait stack-create-complete --stack-name weather-app
 
-# デプロイの実行
-terraform apply
+# 出力値の確認
+aws cloudformation describe-stacks --stack-name weather-app --query 'Stacks[0].Outputs'
 ```
 
 デプロイが完了すると、以下の出力が表示されます：
@@ -79,9 +83,21 @@ terraform apply
 - `lambda_function_name`: Lambda関数名
 - `s3_bucket_name`: S3バケット名
 
-### 3. フロントエンドの API URL 設定
+### 3. フロントエンドファイルのアップロード
 
-1. Terraformの出力から `api_gateway_url` をコピー
+CloudFormationではS3へのファイルアップロードは行われません。スタック作成後に手動でアップロードしてください：
+
+```bash
+# 出力からバケット名を取得
+BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name weather-app --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+
+# フロントエンドファイルをアップロード
+aws s3 sync ../frontend/ s3://$BUCKET_NAME/
+```
+
+### 4. フロントエンドの API URL 設定
+
+1. CloudFormationの出力から `ApiGatewayUrl` をコピー
 2. `aws/frontend/script.js` を編集
 3. `API_GATEWAY_URL` を実際のURLに更新：
 
@@ -89,21 +105,33 @@ terraform apply
 const API_GATEWAY_URL = 'https://xxxxxxxxxx.execute-api.ap-northeast-1.amazonaws.com/production/weather';
 ```
 
-4. 変更をS3にアップロード（Terraformを再実行するか、AWS CLIで手動アップロード）：
+4. 変更をS3にアップロード：
 
 ```bash
-aws s3 cp frontend/script.js s3://$(terraform output -raw s3_bucket_name)/script.js --content-type "application/javascript"
+BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name weather-app --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+aws s3 cp frontend/script.js s3://$BUCKET_NAME/script.js --content-type "application/javascript"
 ```
 
-### 4. 動作確認
+### 5. Lambda関数コードのデプロイ
+
+CloudFormationテンプレートにはプレースホルダーコードが含まれています。実際のLambda関数コードをデプロイしてください：
+
+```bash
+cd ../lambda
+zip function.zip index.js
+FUNCTION_NAME=$(aws cloudformation describe-stacks --stack-name weather-app --query 'Stacks[0].Outputs[?OutputKey==`LambdaFunctionName`].OutputValue' --output text)
+aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://function.zip
+```
+
+### 6. 動作確認
 
 ブラウザで `s3_website_url` にアクセスし、都市名を入力して天気情報が表示されることを確認します。
 
 ## リソースの削除
 
 ```bash
-cd aws/terraform
-terraform destroy
+aws cloudformation delete-stack --stack-name weather-app
+aws cloudformation wait stack-delete-complete --stack-name weather-app
 ```
 
 ## AWS リソース詳細
@@ -174,18 +202,26 @@ API GatewayでCORSが適切に設定されています：
 
 ### リージョン変更
 
-`terraform.tfvars` で `aws_region` を変更：
+`parameters.json` で `Environment` パラメータを変更するか、スタック作成時にリージョンを指定：
 
-```hcl
-aws_region = "us-west-2"
+```bash
+aws cloudformation create-stack \
+  --stack-name weather-app \
+  --template-body file://template.yaml \
+  --parameters file://parameters.json \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region us-west-2
 ```
 
 ### 環境の追加
 
-`terraform.tfvars` で `environment` を変更：
+`parameters.json` で `Environment` の `ParameterValue` を変更：
 
-```hcl
-environment = "staging"
+```json
+{
+  "ParameterKey": "Environment",
+  "ParameterValue": "staging"
+}
 ```
 
 ## ライセンス
