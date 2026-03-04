@@ -26,7 +26,7 @@
 | API呼び出し | ブラウザから直接 OpenWeatherMap API | API Gateway + Lambda 経由 |
 | APIキー管理 | クライアント側 (script.js に埋め込み) | サーバー側 (Lambda 環境変数) |
 | バックエンド | なし | AWS Lambda (Node.js 18.x) |
-| インフラ管理 | なし | Terraform (IaC) |
+| インフラ管理 | なし | CloudFormation (IaC) |
 | デフォルトリージョン | - | ap-northeast-1 (東京) |
 
 ---
@@ -112,8 +112,8 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph Terraform["🔧 Terraform (IaC)"]
-        TF["main.tf<br/>AWS Provider ~> 5.0<br/>リージョン: ap-northeast-1"]
+    subgraph CloudFormation["🔧 CloudFormation (IaC)"]
+        CFN["template.yaml<br/>リージョン: ap-northeast-1"]
     end
 
     subgraph AWSリソース
@@ -125,11 +125,11 @@ graph LR
         STAGE["📦 API ステージ<br/>production"]
     end
 
-    TF --> S3
-    TF --> APIGW
-    TF --> LAMBDA
-    TF --> IAM
-    TF --> CW
+    CFN --> S3
+    CFN --> APIGW
+    CFN --> LAMBDA
+    CFN --> IAM
+    CFN --> CW
 
     APIGW --> STAGE
     APIGW -- "プロキシ統合" --> LAMBDA
@@ -180,7 +180,7 @@ sequenceDiagram
 | **AWS Lambda** | バックエンド処理 | Node.js 18.x ランタイムで動作。入力バリデーション、OpenWeatherMap API 呼び出し、エラーハンドリング、CORSヘッダー付与を担当。メモリ 128MB、タイムアウト 30秒 |
 | **IAM ロール** | 権限管理 | Lambda 実行ロール。`AWSLambdaBasicExecutionRole` ポリシーを付与し、CloudWatch Logs への書き込みを許可 |
 | **CloudWatch Logs** | ログ管理 | Lambda 関数の実行ログを保存。ロググループ `/aws/lambda/weather-app-api`、保持期間 14日 |
-| **Terraform** | インフラ管理 | IaC (Infrastructure as Code) で全 AWS リソースを管理。バージョン >= 1.0.0、AWS Provider ~> 5.0 |
+| **CloudFormation** | インフラ管理 | IaC (Infrastructure as Code) で全 AWS リソースを管理。CloudFormation テンプレートで定義 |
 
 ### 外部サービス
 
@@ -266,9 +266,9 @@ test2/
     │   └── script.js            #   JS (API Gateway 経由で天気データ取得)
     ├── lambda/                  # Lambda 関数のソースコード
     │   └── index.js             #   ハンドラー (Node.js 18.x)
-    └── terraform/               # Infrastructure as Code
-        ├── main.tf              #   全 AWS リソースの定義
-        └── terraform.tfvars.example  # 変数設定のサンプル
+    └── cloudformation/               # Infrastructure as Code
+        ├── template.yaml              #   全 AWS リソースの定義
+        └── parameters.example.json    # パラメータ設定のサンプル
 ```
 
 ### 各ディレクトリの役割
@@ -279,4 +279,4 @@ test2/
 | `/aws/` | AWS版の全ファイル |
 | `/aws/frontend/` | S3 にデプロイする静的ファイル (スタンドアロン版と同じUI、API呼び出し先が異なる) |
 | `/aws/lambda/` | Lambda 関数のソースコード (外部依存なし、Node.js 標準の `https` モジュールのみ使用) |
-| `/aws/terraform/` | Terraform による AWS リソース定義 (S3, API Gateway, Lambda, IAM, CloudWatch) |
+| `/aws/cloudformation/` | CloudFormation による AWS リソース定義 (S3, API Gateway, Lambda, IAM, CloudWatch) |

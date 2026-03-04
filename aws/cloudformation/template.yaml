@@ -1,0 +1,279 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Weather App AWS Infrastructure
+  This template defines the AWS resources needed to host the weather app.
+
+# ==============================================================================
+# Parameters
+# ==============================================================================
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    Description: Environment name
+
+  OpenWeatherMapApiKey:
+    Type: String
+    NoEcho: true
+    Description: OpenWeatherMap API key
+
+  AppName:
+    Type: String
+    Default: weather-app
+    Description: Application name
+
+# ==============================================================================
+# Resources
+# ==============================================================================
+Resources:
+
+  # ============================================
+  # S3 Bucket for Static Website Hosting
+  # ============================================
+
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AppName}-frontend-${AWS::StackName}'
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      Tags:
+        - Key: Name
+          Value: Weather App Frontend
+        - Key: Project
+          Value: weather-app
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+
+  # NOTE: CloudFormation cannot upload files to S3.
+  # After stack creation, upload frontend files using the AWS CLI:
+  #   aws s3 sync ../frontend/ s3://<bucket-name>/
+
+  # ============================================
+  # Lambda Function for Weather API
+  # ============================================
+
+  # IAM role for Lambda
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AppName}-api-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: Project
+          Value: weather-app
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  # Lambda function
+  # NOTE: The Lambda deployment package (zip) must be uploaded separately.
+  # The function source code is located in aws/lambda/index.js.
+  # Upload the zip to an S3 bucket and update the S3Bucket/S3Key below,
+  # or use the AWS CLI to update the function code after stack creation:
+  #   cd aws/lambda && zip function.zip index.js
+  #   aws lambda update-function-code --function-name <function-name> --zip-file fileb://function.zip
+  WeatherApiFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AppName}-api'
+      Runtime: nodejs18.x
+      Handler: index.handler
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          // Placeholder - deploy actual code from aws/lambda/index.js
+          // Use: aws lambda update-function-code --function-name <name> --zip-file fileb://function.zip
+          exports.handler = async (event) => {
+            return { statusCode: 200, body: JSON.stringify({ message: 'Replace with actual code from aws/lambda/index.js' }) };
+          };
+      Environment:
+        Variables:
+          OPENWEATHERMAP_API_KEY: !Ref OpenWeatherMapApiKey
+      Tags:
+        - Key: Name
+          Value: Weather API Lambda
+        - Key: Project
+          Value: weather-app
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  # CloudWatch Log Group for Lambda
+  WeatherApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AppName}-api'
+      RetentionInDays: 14
+      Tags:
+        - Key: Project
+          Value: weather-app
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  # ============================================
+  # API Gateway
+  # ============================================
+
+  # REST API
+  WeatherRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${AppName}-api'
+      Description: Weather App REST API
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Tags:
+        - Key: Name
+          Value: Weather API Gateway
+        - Key: Project
+          Value: weather-app
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  # Resource: /weather
+  WeatherResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref WeatherRestApi
+      ParentId: !GetAtt WeatherRestApi.RootResourceId
+      PathPart: weather
+
+  # GET method
+  WeatherGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WeatherRestApi
+      ResourceId: !Ref WeatherResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WeatherApiFunction.Arn}/invocations'
+
+  # OPTIONS method for CORS
+  WeatherOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WeatherRestApi
+      ResourceId: !Ref WeatherResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # Lambda permission for API Gateway
+  ApiGatewayLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt WeatherApiFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WeatherRestApi}/*/*'
+
+  # API Gateway deployment
+  WeatherApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - WeatherGetMethod
+      - WeatherOptionsMethod
+    Properties:
+      RestApiId: !Ref WeatherRestApi
+
+  # API Gateway stage
+  WeatherApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref WeatherRestApi
+      DeploymentId: !Ref WeatherApiDeployment
+      StageName: !Ref Environment
+      Tags:
+        - Key: Name
+          Value: Weather API Stage
+        - Key: Project
+          Value: weather-app
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+# ==============================================================================
+# Outputs
+# ==============================================================================
+Outputs:
+  S3WebsiteUrl:
+    Description: S3 static website URL
+    Value: !GetAtt FrontendBucket.WebsiteURL
+
+  S3BucketName:
+    Description: S3 bucket name
+    Value: !Ref FrontendBucket
+
+  ApiGatewayUrl:
+    Description: API Gateway URL
+    Value: !Sub 'https://${WeatherRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/weather'
+
+  LambdaFunctionName:
+    Description: Lambda function name
+    Value: !Ref WeatherApiFunction
+
+  ApiGatewayId:
+    Description: API Gateway ID
+    Value: !Ref WeatherRestApi

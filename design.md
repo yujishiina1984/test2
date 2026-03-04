@@ -72,9 +72,9 @@ test2/
     │   └── script.js                   # JavaScriptロジック（API Gateway経由）
     ├── lambda/                         # Lambda関数
     │   └── index.js                    # 天気API プロキシ関数
-    └── terraform/                      # Infrastructure as Code
-        ├── main.tf                     # Terraformリソース定義
-        └── terraform.tfvars.example    # 変数テンプレート
+    └── cloudformation/                  # Infrastructure as Code
+        ├── template.yaml               # CloudFormationテンプレート
+        └── parameters.example.json     # パラメータテンプレート
 ```
 
 ---
@@ -268,7 +268,7 @@ Access-Control-Allow-Methods: GET,OPTIONS
 
 ---
 
-## 6. インフラストラクチャ設計（Terraform）
+## 6. インフラストラクチャ設計（CloudFormation）
 
 ### 6.1 使用AWSリソース一覧
 
@@ -281,7 +281,7 @@ Access-Control-Allow-Methods: GET,OPTIONS
 | **IAM ロール** | Lambda 実行権限 | AWSLambdaBasicExecutionRole |
 | **CloudWatch Logs** | Lambda ログ | 保持期間14日 |
 
-### 6.2 Terraform変数
+### 6.2 CloudFormationパラメータ
 
 | 変数名 | 型 | デフォルト値 | 説明 |
 |--------|-----|------------|------|
@@ -299,7 +299,7 @@ Access-Control-Allow-Methods: GET,OPTIONS
 | IAMロール | `{app_name}-api-role` | `weather-app-api-role` |
 | API Gateway | `{app_name}-api` | `weather-app-api` |
 
-### 6.4 Terraform出力値
+### 6.4 CloudFormation出力値
 
 | 出力名 | 説明 |
 |--------|------|
@@ -317,7 +317,7 @@ Access-Control-Allow-Methods: GET,OPTIONS
 |---------|-----|
 | `Project` | `weather-app` |
 | `Environment` | 変数 `environment` の値 |
-| `ManagedBy` | `terraform` |
+| `ManagedBy` | `cloudformation` |
 
 ---
 
@@ -478,7 +478,7 @@ Access-Control-Allow-Methods: GET,OPTIONS
 |---------|------|
 | フロントエンド | HTML5, CSS3, Vanilla JavaScript (ES2017+) |
 | バックエンド | Node.js 18.x, AWS Lambda |
-| インフラ | Terraform (>= 1.0.0), AWS Provider (~> 5.0) |
+| インフラ | AWS CloudFormation |
 | API | OpenWeatherMap Current Weather Data API |
 | Web API | Fetch API, Intl.DisplayNames |
 
